@@ -77,8 +77,51 @@
         item.classList.toggle('hidden');
     })
 
+    const textParser = (data) =>{
+
+        const container = document.getElementById('content');
+
+    // Split the response into parts by '**'
+    const parts = data.split('**');
+    parts.forEach((part, index) => {
+        // Trim any whitespace from the part
+        part = part.trim();
+
+        // Skip empty parts
+        if (part === '') return;
+
+        if (index % 2 !== 0) {
+            // Odd index, this should be a heading
+            const heading = document.createElement('h2');
+            heading.className = "font-bold text-2xl"
+            heading.textContent = part;
+            container.appendChild(heading);
+        } else {
+            // Even index, this should be a paragraph
+            const paragraphs = part.split('*').filter(p => p.trim() !== '');
+            paragraphs.forEach(paragraph => {
+                if (paragraph.includes(':')) {
+                    const para = document.createElement('p');
+                    para.textContent = paragraph.trim();
+                    container.appendChild(para);
+                } else {
+                    // Handle bullet points
+                    const ul = document.createElement('ul');
+                    const items = paragraph.split('\n').filter(item => item.trim() !== '');
+                    items.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item.trim();
+                        ul.appendChild(li);
+                    });
+                    container.appendChild(ul);
+                }
+            });
+        }
+    });
+    }
 
     const generate = async () => {
+        content.innerHTML = "Generating Blog.."
       console.log("working till here")
       let prompt  =document.querySelector('input').value;
       if(prompt){ 
@@ -90,7 +133,9 @@
         body : JSON.stringify({prompt : prompt}),
 
       })
-      content.innerHTML = await response.text();
+      data = await response.text();
+      content.innerHTML = "";
+      textParser(data);
     }else{
       alert("Give any Prompt")
     }
